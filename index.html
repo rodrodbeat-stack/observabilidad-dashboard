@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#05090b">
+<title>SKYNET // Operations Center</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root{--bg:#05090b;--panel:#0a1215;--panel2:#0c181b;--line:#15343a;--cyan:#43f5e4;--green:#75ff9c;--amber:#ffca68;--red:#ff5364;--muted:#719198;--text:#d7f5f0}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -20%,#123039 0,transparent 45%),var(--bg);color:var(--text);font:13px/1.45 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.02em}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.14;background:repeating-linear-gradient(0deg,transparent 0 3px,#4df8df 4px,transparent 5px);z-index:9}
+header{height:auto;min-height:70px;border-bottom:1px solid var(--line);background:#050a0de8;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:16px 24px;position:sticky;top:0;z-index:10;backdrop-filter:blur(14px)}
+.brand{display:flex;align-items:center;gap:13px}.brand-mark{width:38px;height:38px;border:1px solid var(--cyan);display:grid;place-items:center;color:var(--cyan);font-size:20px;box-shadow:0 0 20px #43f5e422;transform:rotate(45deg)}.brand-mark span{transform:rotate(-45deg)}h1{font-size:18px;letter-spacing:.18em;margin:0;color:var(--cyan)}.sub{font-size:10px;color:var(--muted);letter-spacing:.22em;margin-top:3px}
+.header-right{display:flex;align-items:center;gap:18px;flex-wrap:wrap;justify-content:flex-end}.live{color:var(--green);font-size:11px}.pulse{display:inline-block;width:7px;height:7px;background:var(--green);border-radius:50%;margin-right:7px;box-shadow:0 0 10px var(--green);animation:pulse 1.3s infinite}@keyframes pulse{50%{opacity:.3}}
+main{max-width:1600px;margin:auto;padding:18px;display:grid;gap:14px}.topline{display:flex;align-items:end;justify-content:space-between;gap:10px}.eyebrow{color:var(--muted);font-size:10px;letter-spacing:.2em}.page-title{font-size:20px;margin:4px 0 0;letter-spacing:.12em}.clock{color:var(--cyan);font-size:12px;text-align:right}
+.kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}.panel,.kpi{background:linear-gradient(145deg,#0b171aee,#071013ee);border:1px solid var(--line);position:relative;min-width:0}.panel:before,.kpi:before{content:"";position:absolute;left:-1px;top:-1px;width:28px;height:2px;background:var(--cyan);box-shadow:0 0 9px #43f5e455}.kpi{padding:15px 16px}.kpi-label{font-size:10px;color:var(--muted);letter-spacing:.13em}.kpi-value{font-size:28px;margin:7px 0 4px;color:var(--cyan);font-weight:700}.kpi-foot{font-size:10px;color:var(--muted)}.good{color:var(--green)}.warn{color:var(--amber)}.bad{color:var(--red)}
+.grid{display:grid;grid-template-columns:1.05fr 1.3fr 1fr;gap:14px}.panel{padding:15px}.panel-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}.panel-title{font-size:11px;color:var(--cyan);letter-spacing:.14em}.tag{font-size:9px;color:var(--muted);border:1px solid var(--line);padding:4px 6px}.radar-wrap{min-height:295px;display:grid;place-items:center;position:relative;overflow:hidden}.radar{width:min(100%,300px);aspect-ratio:1;position:relative;border-radius:50%;border:1px solid #1b5b60;background:repeating-radial-gradient(circle,transparent 0 22px,#16454a 23px 24px),linear-gradient(90deg,transparent 49.7%,#17454a 50%,transparent 50.3%),linear-gradient(transparent 49.7%,#17454a 50%,transparent 50.3%);box-shadow:inset 0 0 35px #00ffe00c,0 0 30px #00ffe00b}
+.radar:before{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,transparent 0deg,transparent 280deg,#43f5e40a 320deg,#43f5e477 359deg);animation:spin 5s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}.radar:after{content:"";position:absolute;inset:50% 0 0 50%;background:linear-gradient(135deg,#43f5e455,transparent 65%);transform-origin:top left;animation:spin 5s linear infinite}
+.blip{position:absolute;width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green);z-index:2}.blip.red{background:var(--red);box-shadow:0 0 12px var(--red)}.blip.amber{background:var(--amber);box-shadow:0 0 12px var(--amber)}.radar-label{position:absolute;bottom:8px;left:0;right:0;text-align:center;color:var(--muted);font-size:9px;letter-spacing:.15em}
+.legend{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:9px;margin-top:8px}.dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px}
+.chart-box{height:260px;position:relative}.server-list{display:grid;gap:8px}.server{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:10px;border:1px solid #153137;background:#071013}.server-name{font-size:11px}.server-meta{font-size:9px;color:var(--muted);margin-top:4px}.status{font-size:9px;align-self:start}.meter{height:4px;background:#162b2e;margin-top:9px;overflow:hidden}.meter span{height:100%;display:block;background:var(--cyan);box-shadow:0 0 8px #43f5e455}.meter span.hot{background:var(--amber)}.meter span.critical{background:var(--red)}
+.lower{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:14px}.event-list{display:grid;gap:0;max-height:230px;overflow:auto}.event{display:grid;grid-template-columns:60px 45px 1fr;gap:8px;padding:9px 0;border-bottom:1px solid #13282c;font-size:10px}.event-time{color:var(--muted)}.event-msg{color:#b5d4d0}.trace{border-left:2px solid var(--cyan);padding:8px 10px;margin-bottom:8px;background:#071013;font-size:10px}.trace-top{display:flex;justify-content:space-between;gap:8px}.trace-route{color:var(--text)}.trace-bar{height:3px;background:#183237;margin-top:7px}.trace-bar span{display:block;height:100%;background:var(--cyan)}.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{cursor:pointer;background:#0a2023;color:var(--cyan);border:1px solid #1d5c60;padding:8px 11px;font:inherit;font-size:10px;letter-spacing:.08em}.btn:hover{background:#103337}.btn.active{border-color:var(--green);color:var(--green)}footer{padding:16px 20px;text-align:center;border-top:1px solid var(--line);color:#47656a;font-size:9px;letter-spacing:.12em}
+@media(max-width:1100px){.grid{grid-template-columns:1fr 1fr}.grid .panel:last-child{grid-column:1/-1}.lower{grid-template-columns:1fr 1fr}.lower .panel:last-child{grid-column:1/-1}.kpis{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:650px){header{padding:12px 14px}.sub{display:none}.header-right{gap:8px;font-size:10px}main{padding:12px}.kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.kpi{padding:12px}.kpi-value{font-size:23px}.grid,.lower{grid-template-columns:1fr}.grid .panel:last-child,.lower .panel:last-child{grid-column:auto}.topline{align-items:start}.page-title{font-size:16px}.clock{font-size:10px}.radar-wrap{min-height:270px}}
+</style>
+</head>
+<body>
+<header>
+ <div class="brand"><div class="brand-mark"><span>⌁</span></div><div><h1>SKYNET<span style="color:#d7f5f0"> / OBSERVABILITY</span></h1><div class="sub">AUTONOMOUS INFRASTRUCTURE OPERATIONS</div></div></div>
+ <div class="header-right"><span class="live"><i class="pulse"></i>SIMULATION ACTIVE</span><span id="clock" class="clock"></span></div>
+</header>
+<main>
+ <div class="topline"><div><div class="eyebrow">COMMAND CENTER / SECTOR 07</div><div class="page-title">INFRASTRUCTURE STATUS</div></div><div class="eyebrow">TELEMETRY FEED <span class="good">● ONLINE</span></div></div>
+ <section class="kpis">
+  <div class="kpi"><div class="kpi-label">SERVERS ONLINE</div><div class="kpi-value" id="online">08<span style="font-size:13px;color:var(--muted)"> / 09</span></div><div class="kpi-foot good">● Fleet availability</div></div>
+  <div class="kpi"><div class="kpi-label">CPU UTILIZATION</div><div class="kpi-value" id="cpu">42%</div><div class="kpi-foot">Cluster average</div></div>
+  <div class="kpi"><div class="kpi-label">MEMORY PRESSURE</div><div class="kpi-value" id="ram">67%</div><div class="kpi-foot">RAM allocation</div></div>
+  <div class="kpi"><div class="kpi-label">NETWORK LATENCY</div><div class="kpi-value" id="latency">24<span style="font-size:13px"> ms</span></div><div class="kpi-foot good">Within threshold</div></div>
+  <div class="kpi"><div class="kpi-label">OPEN INCIDENTS</div><div class="kpi-value warn" id="incidents">03</div><div class="kpi-foot warn">1 high priority</div></div>
+ </section>
+ <section class="grid">
+  <div class="panel"><div class="panel-head"><div class="panel-title">◉ TACTICAL RADAR</div><span class="tag">LIVE SIMULATION</span></div>
+   <div class="radar-wrap"><div class="radar" id="radar"><span class="blip" style="left:28%;top:33%"></span><span class="blip" style="left:64%;top:24%"></span><span class="blip red" style="left:70%;top:62%"></span><span class="blip" style="left:40%;top:72%"></span><span class="blip amber" style="left:51%;top:44%"></span><span class="blip" style="left:22%;top:61%"></span><span class="blip" style="left:79%;top:40%"></span><span class="radar-label">NODE SCAN // 360° SWEEP</span></div></div>
+   <div class="legend"><span><i class="dot" style="background:var(--green)"></i>HEALTHY</span><span><i class="dot" style="background:var(--amber)"></i>WARNING</span><span><i class="dot" style="background:var(--red)"></i>CRITICAL</span></div>
+  </div>
+  <div class="panel"><div class="panel-head"><div class="panel-title">▥ RESOURCE TELEMETRY</div><span class="tag">LAST 60 SECONDS</span></div><div class="chart-box"><canvas id="metricsChart"></canvas></div></div>
+  <div class="panel"><div class="panel-head"><div class="panel-title">▤ SERVER FLEET</div><span class="tag" id="fleet-count">09 NODES</span></div><div class="server-list" id="server-list"></div></div>
+ </section>
+ <section class="lower">
+  <div class="panel"><div class="panel-head"><div class="panel-title">⚠ INCIDENT STREAM</div><span class="tag">EVENTS</span></div><div class="event-list" id="events"></div></div>
+  <div class="panel"><div class="panel-head"><div class="panel-title">⌁ SERVICE TRACES</div><span class="tag">DISTRIBUTED</span></div><div id="traces"></div></div>
+  <div class="panel"><div class="panel-head"><div class="panel-title">⌘ CONTROL PANEL</div><span class="tag">LOCAL DEMO</span></div><p style="color:var(--muted);font-size:10px">Modo demostración: los valores son simulados y no representan servidores reales.</p><div class="actions"><button class="btn active" id="pauseBtn">Ⅱ PAUSAR FEED</button><button class="btn" id="alertBtn">＋ GENERAR EVENTO</button><button class="btn" id="resetBtn">↻ REINICIAR</button></div><div style="margin-top:16px;border-top:1px solid var(--line);padding-top:12px"><div class="eyebrow">AGENT STATUS</div><div style="margin-top:8px" class="good">● UI ENGINE: NOMINAL</div><div class="good">● CHART STREAM: CONNECTED</div><div class="warn">● DATA SOURCE: DEMO MODE</div></div></div>
+ </section>
+</main>
+<footer>SKYNET OPERATIONS INTERFACE // FRONT-END DEMO · NO LIVE HOST CONNECTIONS CONFIGURED</footer>
+<script>
+const $=id=>document.getElementById(id);
+const serverData=[
+ {name:'core-api-01',ip:'10.0.1.12',cpu:32,ram:61,status:'ONLINE'},
+ {name:'database-primary',ip:'10.0.1.20',cpu:68,ram:82,status:'WARNING'},
+ {name:'edge-gateway-01',ip:'10.0.2.04',cpu:24,ram:45,status:'ONLINE'},
+ {name:'worker-cluster-03',ip:'10.0.3.18',cpu:76,ram:73,status:'WARNING'},
+ {name:'auth-service-01',ip:'10.0.1.08',cpu:18,ram:52,status:'ONLINE'},
+ {name:'cache-node-02',ip:'10.0.1.22',cpu:39,ram:64,status:'ONLINE'}
+];
+function renderServers(){ $('server-list').innerHTML=serverData.map(s=>{let cls=s.status==='WARNING'?'warn':'good';let hot=s.cpu>75?'critical':s.cpu>65?'hot':'';return `<div class="server"><div><div class="server-name">${s.name}</div><div class="server-meta">${s.ip} · CPU ${s.cpu}% · RAM ${s.ram}%</div><div class="meter"><span class="${hot}" style="width:${s.cpu}%"></span></div></div><div class="status ${cls}">● ${s.status}</div></div>`}).join('')}
+const chartCtx=$('metricsChart').getContext('2d');
+const labels=Array.from({length:20},(_,i)=>i%4===0?`-${60-i*3}s`:'');
+const cpuData=Array.from({length:20},()=>25+Math.random()*35);
+const ramData=Array.from({length:20},()=>52+Math.random()*25);
+const chart=new Chart(chartCtx,{type:'line',data:{labels,datasets:[{label:'CPU %',data:cpuData,borderColor:'#43f5e4',backgroundColor:'#43f5e414',fill:true,tension:.35,pointRadius:0,borderWidth:2},{label:'RAM %',data:ramData,borderColor:'#b88cff',backgroundColor:'#b88cff10',fill:true,tension:.35,pointRadius:0,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{labels:{color:'#91b4b5',boxWidth:12,font:{size:10}}}},scales:{x:{grid:{color:'#10282b'},ticks:{color:'#719198',maxTicksLimit:5,font:{size:9}}},y:{min:0,max:100,grid:{color:'#153137'},ticks:{color:'#719198',font:{size:9},callback:v=>v+'%'}}}}});
+const messages=[
+ ['INFO','core-api-01','Health check completado correctamente'],
+ ['WARN','database-primary','Uso de memoria sobre el umbral del 80%'],
+ ['INFO','edge-gateway-01','Handshake TLS establecido'],
+ ['WARN','worker-cluster-03','Cola de trabajos con crecimiento sostenido'],
+ ['INFO','auth-service-01','Rotación de token completada'],
+ ['CRIT','cache-node-02','Latencia por encima del umbral configurado']
+];
+function addEvent(forced=false){let item=forced?messages[5]:messages[Math.floor(Math.random()*messages.length)];let t=new Date().toLocaleTimeString('es-CL',{hour12:false});let cls=item[0]==='CRIT'?'bad':item[0]==='WARN'?'warn':'good';let row=document.createElement('div');row.className='event';row.innerHTML=`<span class="event-time">${t}</span><span class="${cls}">${item[0]}</span><span class="event-msg">${item[1]} · ${item[2]}</span>`;$('events').prepend(row);while($('events').children.length>12)$('events').lastChild.remove();if(forced)$('incidents').textContent=String(Number($('incidents').textContent)+1).padStart(2,'0')}
+const routes=['GET /api/v1/nodes','POST /auth/validate','GET /metrics/summary','GET /api/v2/health','POST /events/ingest'];
+function addTrace(){let ms=18+Math.floor(Math.random()*390), color=ms>300?'var(--red)':ms>200?'var(--amber)':'var(--cyan)';let d=document.createElement('div');d.className='trace';d.innerHTML=`<div class="trace-top"><span class="trace-route">${routes[Math.floor(Math.random()*routes.length)]}</span><span style="color:${color}">${ms} ms</span></div><div class="trace-bar"><span style="width:${Math.min(ms/4,100)}%;background:${color}"></span></div>`;$('traces').prepend(d);while($('traces').children.length>4)$('traces').lastChild.remove()}
+function tick(){let c=25+Math.floor(Math.random()*45),r=48+Math.floor(Math.random()*39),l=12+Math.floor(Math.random()*75);$('cpu').textContent=c+'%';$('ram').textContent=r+'%';$('latency').innerHTML=l+'<span style="font-size:13px"> ms</span>';chart.data.datasets[0].data.shift();chart.data.datasets[0].data.push(c);chart.data.datasets[1].data.shift();chart.data.datasets[1].data.push(r);chart.update('none');serverData.forEach(s=>{s.cpu=Math.max(5,Math.min(98,s.cpu+Math.floor(Math.random()*17)-8));s.ram=Math.max(20,Math.min(96,s.ram+Math.floor(Math.random()*9)-4));if(s.cpu>85||s.ram>88)s.status='WARNING';else s.status='ONLINE'});renderServers();if(Math.random()>.35)addEvent();if(Math.random()>.45)addTrace()}
+let paused=false, timer=setInterval(tick,1800);
+function updateClock(){$('clock').textContent=new Date().toLocaleString('es-CL',{hour12:false})}
+setInterval(updateClock,1000);updateClock();renderServers();for(let i=0;i<6;i++)addEvent();for(let i=0;i<3;i++)addTrace();
+$('pauseBtn').addEventListener('click',()=>{paused=!paused;if(paused){clearInterval(timer);$('pauseBtn').textContent='▶ REANUDAR FEED';$('pauseBtn').classList.remove('active')}else{timer=setInterval(tick,1800);$('pauseBtn').textContent='Ⅱ PAUSAR FEED';$('pauseBtn').classList.add('active')}});
+$('alertBtn').addEventListener('click',()=>addEvent(true));
+$('resetBtn').addEventListener('click',()=>{ $('incidents').textContent='03';$('events').innerHTML='';$('traces').innerHTML='';for(let i=0;i<5;i++)addEvent();for(let i=0;i<3;i++)addTrace();});
+</script>
+</body>
+</html>
